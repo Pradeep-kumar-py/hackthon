@@ -1,0 +1,35 @@
+.formatted-response {
+    line-height: 1.7;
+}
+
+.formatted-response strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.formatted-response em {
+    color: #4f46e5;
+    font-style: italic;
+}
+
+.formatted-response ul, 
+.formatted-response ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.formatted-response li {
+    margin: 0.5rem 0;
+}
+
+.formatted-response p {
+    margin: 1rem 0;
+}
+
+.formatted-response h1,
+.formatted-response h2,
+.formatted-response h3 {
+    color: #1f2937;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem 0;
+}

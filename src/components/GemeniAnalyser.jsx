@@ -12,7 +12,7 @@ export default function OutbreakOraclePage() {
 
     useEffect(() => {
         fetchAllData();
-    }, [city, region]);
+    }, []);
 
     const fetchAllData = async () => {
         setLoading(true);
@@ -52,7 +52,7 @@ Please provide a comprehensive analysis including:
 Format your response clearly with proper headings and bullet points.`;
 
             const geminiRes = await axios.post(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyAssNcQzQyz4cqJBaP6Kr77dYo77x3FTJM`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBDfURRQqhseA8XZT0j82_Hb2rCKc7kUgU`,
                 {
                     contents: [{ parts: [{ text: summaryPrompt }] }]
                 },
@@ -169,10 +169,10 @@ Format your response clearly with proper headings and bullet points.`;
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5 }}
                     className={`inline-block px-6 py-3 rounded-full text-white text-xl font-bold shadow-md ${alertLevel === 'High'
-                            ? 'bg-red-600'
-                            : alertLevel === 'Moderate'
-                                ? 'bg-yellow-500'
-                                : 'bg-green-500'
+                        ? 'bg-red-600'
+                        : alertLevel === 'Moderate'
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
                         }`}
                 >
                     Alert Level: {alertLevel}
@@ -190,9 +190,40 @@ Format your response clearly with proper headings and bullet points.`;
                 )}
 
                 {!loading && analysisSummary && (
-                    <div className="bg-white rounded-lg shadow-lg p-6">
-                        <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-                            {analysisSummary}
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+                            <h3 className="text-lg font-semibold flex items-center">
+                                <span className="mr-2">🤖</span>
+                                AI Disease Outbreak Analysis
+                            </h3>
+                        </div>
+                        <div className="p-6">
+                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                                <div
+                                    className="formatted-response"
+                                    dangerouslySetInnerHTML={{
+                                        __html: analysisSummary
+                                            ?.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            ?.replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                            ?.replace(/\n\n/g, '</p><p>')
+                                            ?.replace(/\n- /g, '</p><ul><li>')
+                                            ?.replace(/\n(\d+)\. /g, '</p><ol><li>')
+                                            ?.replace(/^/, '<p>')
+                                            ?.replace(/$/, '</p>')
+                                            ?.replace(/<p><\/p>/g, '')
+                                            ?.replace(/<p><ul>/g, '<ul>')
+                                            ?.replace(/<p><ol>/g, '<ol>')
+                                            ?.replace(/<\/li><\/p>/g, '</li>')
+                                            ?.replace(/(<li>.*?)(?=<li>|<\/ul>|<\/ol>)/g, '$1</li>')
+                                    }}
+                                />
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                <div className="flex items-center text-xs text-gray-500">
+                                    <span className="mr-2">⚡</span>
+                                    Powered by AI Analysis • Generated at {new Date().toLocaleTimeString()}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
