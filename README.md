@@ -1,12 +1,14 @@
-# React + Vite
+OUTBREAKORACAL: Epidemic Simulation and Prediction
+![OUTBREAKORACAL](Screenshot 2025-07-05 at 4.07.47 AM.png)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+OUTBREAKORACAL is a robust tool designed to simulate and predict the spread of epidemics using advanced modeling techniques. This project aims to provide insightful data on disease progression, helping users understand potential outbreak scenarios and their impact.
 
-Currently, two official plugins are available:
+Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Epidemic Modeling: Utilizes established epidemiological models (e.g., SIR, SEIR) to simulate disease spread over time.
 
-## Expanding the ESLint configuration
+Interactive Visualizations: Presents simulation results through clear and intuitive graphs, making complex data easily understandable.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Customizable Parameters: Allows users to adjust key variables such as infection rates, recovery rates, population size, and intervention measures to explore various scenarios.
+
+Prediction Capabilities: Offers projections on peak infection times, total infected individuals, and other critical metrics based on the simulation.
