@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* ...existing code... */
+.prose-invert strong {
+  color: #fff !important; /* or use a bright accent color if you prefer */
+  font-weight: 700;
+}
+/* ...existing code... */

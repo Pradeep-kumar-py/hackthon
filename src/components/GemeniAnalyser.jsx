@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
+import Error from './Error';
+
 
 export default function OutbreakOraclePage() {
     const [airQuality, setAirQuality] = useState(null);
@@ -9,13 +12,96 @@ export default function OutbreakOraclePage() {
     const [region, setRegion] = useState('India');
     const [analysisSummary, setAnalysisSummary] = useState(null);
     const [loading, setLoading] = useState(false);
+    const { isDark, toggleTheme } = useTheme();
+    const [storyMode, setStoryMode] = useState(true);
+    const [storyStep, setStoryStep] = useState(0);
+    const [hasError, setHasError] = useState(false);
 
+
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const synthRef = useRef(window.speechSynthesis);
+
+
+    const storySteps = [
+        {
+            avatar: "🧑‍⚕️",
+            text: "Welcome to Outbreak Oracle! I'm Dr. Ada, your health AI guide.",
+        },
+        {
+            avatar: "🧑‍⚕️",
+            text: "Enter your city and region above, then click 'Predict Outbreaks' to get started.",
+        },
+        {
+            avatar: "🧑‍⚕️",
+            text: "I'll analyze weather and air quality, then predict possible health risks for your area.",
+        },
+        {
+            avatar: "🧑‍⚕️",
+            text: "Check the color-coded alert level and read my recommendations to stay safe!",
+        },
+        {
+            avatar: "🧑‍⚕️",
+            text: "You can always restart Story Mode from the menu. Ready to begin?",
+        },
+    ];
+
+    const handleNextStory = () => {
+        if (storyStep < storySteps.length - 1) {
+            setStoryStep(storyStep + 1);
+        } else {
+            setStoryMode(false);
+        }
+    };
+
+    const handleSkipStory = () => setStoryMode(false);
+
+    const speakAnalysis = () => {
+        if (isSpeaking) {
+            synthRef.current.cancel();
+            setIsSpeaking(false);
+            return;
+        }
+        if (!analysisSummary) return;
+        synthRef.current.cancel();
+
+        const utter = new window.SpeechSynthesisUtterance(
+            analysisSummary.replace(/[*_~`#>\[\]\(\)]/g, '')
+        );
+
+        // Try to pick a more natural voice
+        const voices = window.speechSynthesis.getVoices();
+        console.log('Available voices:', voices);
+
+        const preferredVoice = voices.find(
+            v => v.name === "Samantha" || v.voiceURI === "com.apple.voice.compact.en-US.Samantha"
+        );
+        if (preferredVoice) {
+            utter.voice = preferredVoice;
+        }
+
+        utter.rate = 0.98;
+        utter.pitch = 1.08;
+        utter.volume = 1;
+
+        utter.onend = () => setIsSpeaking(false);
+        utter.onerror = () => setIsSpeaking(false);
+        setIsSpeaking(true);
+        synthRef.current.speak(utter);
+    };
+
+    // Optional: Stop speech if user navigates away or summary changes
     useEffect(() => {
-        fetchAllData();
-    }, []);
+        return () => synthRef.current.cancel();
+    }, [analysisSummary]);
+
+
+    // useEffect(() => {
+    //     fetchAllData();
+    // }, []);
 
     const fetchAllData = async () => {
         setLoading(true);
+        setHasError(false); // Reset error state
         try {
             const geoRes = await axios.get(
                 `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=70afb6c6dcb6ddc2254e9cb765341486&units=metric`
@@ -52,7 +138,7 @@ Please provide a comprehensive analysis including:
 Format your response clearly with proper headings and bullet points.`;
 
             const geminiRes = await axios.post(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBDfURRQqhseA8XZT0j82_Hb2rCKc7kUgU`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyAssNcQzQyz4cqJBaP6Kr77dYo77x3FTJM`,
                 {
                     contents: [{ parts: [{ text: summaryPrompt }] }]
                 },
@@ -67,7 +153,8 @@ Format your response clearly with proper headings and bullet points.`;
             setAnalysisSummary(result);
         } catch (error) {
             console.error('Error:', error);
-            setAnalysisSummary('Error fetching disease prediction. Please try again.');
+            setHasError(true);
+            setAnalysisSummary(null);
         } finally {
             setLoading(false);
         }
@@ -98,8 +185,45 @@ Format your response clearly with proper headings and bullet points.`;
     const alertLevel = getAlertLevel();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-6">
-            <h1 className="text-4xl font-bold text-center mb-8">🧠 Outbreak Oracle</h1>
+        <div className={`min-h-screen transition-colors duration-300 p-6 ${isDark
+            ? 'bg-gradient-to-br from-gray-900 to-gray-800 text-white'
+            : 'bg-gradient-to-br from-blue-50 to-purple-100 text-gray-900'
+            }`}>
+            {storyMode && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                    <div className={`max-w-md w-full bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 text-center`}>
+                        <div className="text-5xl mb-4">{storySteps[storyStep].avatar}</div>
+                        <div className="text-lg mb-6">{storySteps[storyStep].text}</div>
+                        <div className="flex justify-center gap-4">
+                            <button
+                                onClick={handleNextStory}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                {storyStep === storySteps.length - 1 ? "Let's Go!" : "Next"}
+                            </button>
+                            <button
+                                onClick={handleSkipStory}
+                                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                            >
+                                Skip
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <div className="flex justify-center gap-4 items-center mb-8">
+                <h1 className="text-4xl font-bold">🧠 Outbreak Oracle</h1>
+                <button
+                    onClick={toggleTheme}
+                    className={`p-1 rounded-full transition-colors duration-300 ${isDark
+                        ? 'bg-yellow-500 hover:bg-yellow-400 text-gray-900'
+                        : 'bg-gray-800 hover:bg-gray-700 text-white'
+                        }`}
+                    title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                >
+                    {isDark ? '☀️' : '🌙'}
+                </button>
+            </div>
 
             <div className="flex flex-col md:flex-row gap-4 items-center justify-center mb-6">
                 <input
@@ -107,19 +231,25 @@ Format your response clearly with proper headings and bullet points.`;
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Enter City"
-                    className="px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900'
+                        }`}
                 />
                 <input
                     type="text"
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
                     placeholder="Enter Region (e.g., India)"
-                    className="px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`px-4 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900'
+                        }`}
                 />
                 <button
                     onClick={fetchAllData}
                     disabled={loading}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors duration-300"
                 >
                     {loading ? 'Analyzing...' : 'Predict Outbreaks'}
                 </button>
@@ -131,28 +261,30 @@ Format your response clearly with proper headings and bullet points.`;
                 transition={{ duration: 0.5 }}
                 className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto mb-8"
             >
-                <div className="bg-white rounded-xl shadow-xl p-6 border-l-8 border-purple-500">
+                <div className={`rounded-xl shadow-xl p-6 border-l-8 border-purple-500 ${isDark ? 'bg-gray-800' : 'bg-white'
+                    }`}>
                     <h2 className="text-xl font-semibold text-purple-600 mb-2">Air Quality</h2>
-                    <p className="text-gray-600">
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
                         AQI: {airQuality?.main.aqi || 'Loading'} (1 = Good, 5 = Hazardous)
                     </p>
                     <div className="mt-2">
-                        <div className="text-sm text-gray-500">
+                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                             CO: {airQuality?.components.co || 'N/A'} μg/m³
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                             PM2.5: {airQuality?.components.pm2_5 || 'N/A'} μg/m³
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-xl p-6 border-l-8 border-blue-500">
+                <div className={`rounded-xl shadow-xl p-6 border-l-8 border-blue-500 ${isDark ? 'bg-gray-800' : 'bg-white'
+                    }`}>
                     <h2 className="text-xl font-semibold text-blue-600 mb-2">Weather</h2>
-                    <div className="text-gray-600">
+                    <div className={isDark ? 'text-gray-300' : 'text-gray-600'}>
                         {weather ? (
                             <>
                                 Temp: {weather.main.temp}°C, {weather.weather[0].description}
-                                <div className="text-sm text-gray-500 mt-1">
+                                <div className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                                     Humidity: {weather.main.humidity}% | Pressure: {weather.main.pressure} hPa
                                 </div>
                             </>
@@ -184,23 +316,42 @@ Format your response clearly with proper headings and bullet points.`;
 
                 {loading && (
                     <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="mt-4 text-gray-600">Analyzing environmental data and predicting potential outbreaks...</p>
+                        <img
+                            src="/gif.gif"
+                            alt="Loading animation"
+                            className="w-40 h-40 mx-auto mb-4 rounded-full shadow-lg border-4 border-blue-200"
+                            draggable={false}
+                        />
+                        <p className={`mt-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                            Analyzing environmental data and predicting potential outbreaks...
+                        </p>
                     </div>
                 )}
 
-                {!loading && analysisSummary && (
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+                {!loading && hasError && (
+                    <div className="max-w-6xl mx-auto">
+                        <Error />
+                    </div>
+                )}
+
+                {!loading && !hasError && analysisSummary && (
+                    <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg overflow-hidden`}>
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
                             <h3 className="text-lg font-semibold flex items-center">
                                 <span className="mr-2">🤖</span>
                                 AI Disease Outbreak Analysis
                             </h3>
+                            <button
+                                onClick={speakAnalysis}
+                                className={`ml-4 px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200 ${isSpeaking ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                                title={isSpeaking ? "Stop playback" : "Listen to analysis"}
+                            >
+                                {isSpeaking ? '⏹️ Stop' : '🔊 Listen'}
+                            </button>
                         </div>
                         <div className="p-6">
-                            <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                            <div className={`${isDark ? 'prose prose-sm prose-invert text-gray-300' : 'prose prose-sm text-gray-700'} max-w-none leading-[2.5]`}>
                                 <div
-                                    className="formatted-response"
                                     dangerouslySetInnerHTML={{
                                         __html: analysisSummary
                                             ?.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -218,8 +369,8 @@ Format your response clearly with proper headings and bullet points.`;
                                     }}
                                 />
                             </div>
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                <div className="flex items-center text-xs text-gray-500">
+                            <div className={`mt-4 pt-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                                <div className={`flex items-center text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                                     <span className="mr-2">⚡</span>
                                     Powered by AI Analysis • Generated at {new Date().toLocaleTimeString()}
                                 </div>
@@ -229,8 +380,11 @@ Format your response clearly with proper headings and bullet points.`;
                 )}
 
                 {!loading && !analysisSummary && (
-                    <div className="bg-gray-50 rounded-lg p-6 text-center">
-                        <p className="text-gray-500">Click "Predict Outbreaks" to get disease predictions for {city}.</p>
+                    <div className={`rounded-lg p-6 text-center ${isDark ? 'bg-gray-800' : 'bg-gray-50'
+                        }`}>
+                        <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                            Click "Predict Outbreaks" to get disease predictions for {city}.
+                        </p>
                     </div>
                 )}
             </div>
