@@ -30,9 +30,11 @@ export default function OutbreakOraclePage() {
 
 
 
-    const fetchBgImage = async () => {
+    const fetchBgImage = async (weatherDesc) => {
         try {
-            const url = `https://api.pexels.com/v1/search?query=${city}&per_page=1`;
+            // Use both city and weather description for the query
+            const query = `${city} ${weatherDesc}`;
+            const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1`;
             const headers = { Authorization: import.meta.env.VITE_PEXELS_API_KEY };
             const res = await axios.get(url, { headers });
             const photo = res.data.photos?.[0]?.src?.large || null;
@@ -43,15 +45,15 @@ export default function OutbreakOraclePage() {
     };
 
     // Fetch image when region changes
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            if (city && city.trim().length > 0) {
-                fetchBgImage();
-            }
-        }, 500); // 500ms debounce
+    // useEffect(() => {
+    //     const handler = setTimeout(() => {
+    //         if (city && city.trim().length > 0) {
+    //             fetchBgImage();
+    //         }
+    //     }, 500); // 500ms debounce
 
-        return () => clearTimeout(handler);
-    }, [city]);
+    //     return () => clearTimeout(handler);
+    // }, [city]);
 
     const storySteps = [
         {
@@ -140,6 +142,9 @@ export default function OutbreakOraclePage() {
                 `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=70afb6c6dcb6ddc2254e9cb765341486&units=metric`
             );
             setWeather(geoRes.data);
+
+            const weatherDesc = geoRes.data.weather?.[0]?.description || city;
+            await fetchBgImage(weatherDesc);
 
             const airRes = await axios.get(
                 `https://api.openweathermap.org/data/2.5/air_pollution?lat=${geoRes.data.coord.lat}&lon=${geoRes.data.coord.lon}&appid=70afb6c6dcb6ddc2254e9cb765341486`
@@ -301,19 +306,19 @@ Format your response clearly with proper headings and bullet points.`;
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         color: isDark ? 'white' : 'black',
-                        backgroundColor: isDark ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)', // dark or light overlay
+                        backgroundColor: isDark ? 'rgba(30,30,30,0.4)' : 'rgba(255,255,255,0.4)', 
                         backgroundBlendMode: 'overlay',
                     } : {}}
                 >
                     <h2 className="text-xl font-semibold text-purple-600 mb-2">Air Quality</h2>
-                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                    <p className={isDark ? 'text-gray-100' : 'text-gray-900'}>
                         AQI: {airQuality?.main.aqi || 'Loading'} (1 = Good, 5 = Hazardous)
                     </p>
                     <div className="mt-2">
-                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <div className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                             CO: {airQuality?.components.co || 'N/A'} μg/m³
                         </div>
-                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <div className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                             PM2.5: {airQuality?.components.pm2_5 || 'N/A'} μg/m³
                         </div>
                     </div>
@@ -326,16 +331,16 @@ Format your response clearly with proper headings and bullet points.`;
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         color: isDark ? 'white' : 'black',
-                        backgroundColor: isDark ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)', // dark or light overlay
+                        backgroundColor: isDark ? 'rgba(30,30,30,0.4)' : 'rgba(255,255,255,0.4)', 
                         backgroundBlendMode: 'overlay',
                     } : {}}
                 >
                     <h2 className="text-xl font-semibold text-blue-600 mb-2">Weather</h2>
-                    <div className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                    <div className={isDark ? 'text-gray-100' : 'text-gray-700'}>
                         {weather ? (
                             <>
                                 Temp: {weather.main.temp}°C, {weather.weather[0].description}
-                                <div className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                <div className={`text-sm mt-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                                     Humidity: {weather.main.humidity}% | Pressure: {weather.main.pressure} hPa
                                 </div>
                             </>
