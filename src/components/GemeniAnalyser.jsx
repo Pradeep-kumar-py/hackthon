@@ -139,7 +139,7 @@ export default function OutbreakOraclePage() {
 
             // fetchBgImage();
             const geoRes = await axios.get(
-                `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=70afb6c6dcb6ddc2254e9cb765341486&units=metric`
+                `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${import.meta.env.VITE_OPENWEATHER_API_KEY}&units=metric`
             );
             setWeather(geoRes.data);
 
@@ -147,7 +147,7 @@ export default function OutbreakOraclePage() {
             await fetchBgImage(weatherDesc);
 
             const airRes = await axios.get(
-                `https://api.openweathermap.org/data/2.5/air_pollution?lat=${geoRes.data.coord.lat}&lon=${geoRes.data.coord.lon}&appid=70afb6c6dcb6ddc2254e9cb765341486`
+                `https://api.openweathermap.org/data/2.5/air_pollution?lat=${geoRes.data.coord.lat}&lon=${geoRes.data.coord.lon}&appid=${import.meta.env.VITE_OPENWEATHER_API_KEY}`
             );
             setAirQuality(airRes.data.list[0]);
 
@@ -176,7 +176,7 @@ Please provide a comprehensive analysis including:
 Format your response clearly with proper headings and bullet points.`;
 
             const geminiRes = await axios.post(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyAssNcQzQyz4cqJBaP6Kr77dYo77x3FTJM`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${import.meta.env.VITE_GEMENI_API_KEY}`,
                 {
                     contents: [{ parts: [{ text: summaryPrompt }] }]
                 },
@@ -228,7 +228,7 @@ Format your response clearly with proper headings and bullet points.`;
             : 'bg-gradient-to-br from-blue-50 to-purple-100 text-gray-900'
             }`}>
             {storyMode && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center text-white z-50">
                     <div className={`max-w-md w-full bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 text-center`}>
                         <div className="text-5xl mb-4">{storySteps[storyStep].avatar}</div>
                         <div className="text-lg mb-6">{storySteps[storyStep].text}</div>
