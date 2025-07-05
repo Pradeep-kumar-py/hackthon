@@ -228,8 +228,20 @@ Format your response clearly with proper headings and bullet points.`;
             : 'bg-gradient-to-br from-blue-50 to-purple-100 text-gray-900'
             }`}>
             {storyMode && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center text-white z-50">
-                    <div className={`max-w-md w-full bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 text-center`}>
+                <div
+                    className={`fixed inset-0 flex items-center justify-center z-50 transition-colors duration-300 ${isDark
+                            ? 'bg-black bg-opacity-80 text-white'
+                            : 'bg-white bg-opacity-80 text-gray-900'
+                        }`}
+                    style={{
+                        backdropFilter: 'blur(2px)',
+                        WebkitBackdropFilter: 'blur(2px)',
+                    }}
+                >
+                    <div
+                        className={`max-w-md w-full rounded-xl shadow-lg p-6 text-center transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-white'
+                            }`}
+                    >
                         <div className="text-5xl mb-4">{storySteps[storyStep].avatar}</div>
                         <div className="text-lg mb-6">{storySteps[storyStep].text}</div>
                         <div className="flex justify-center gap-4">
@@ -241,7 +253,10 @@ Format your response clearly with proper headings and bullet points.`;
                             </button>
                             <button
                                 onClick={handleSkipStory}
-                                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                                className={`px-4 py-2 rounded hover:bg-gray-400 ${isDark
+                                        ? 'bg-gray-700 text-white'
+                                        : 'bg-gray-300 text-gray-800'
+                                    }`}
                             >
                                 Skip
                             </button>
@@ -306,7 +321,7 @@ Format your response clearly with proper headings and bullet points.`;
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         color: isDark ? 'white' : 'black',
-                        backgroundColor: isDark ? 'rgba(30,30,30,0.4)' : 'rgba(255,255,255,0.4)', 
+                        backgroundColor: isDark ? 'rgba(30,30,30,0.4)' : 'rgba(255,255,255,0.4)',
                         backgroundBlendMode: 'overlay',
                     } : {}}
                 >
@@ -331,7 +346,7 @@ Format your response clearly with proper headings and bullet points.`;
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         color: isDark ? 'white' : 'black',
-                        backgroundColor: isDark ? 'rgba(30,30,30,0.4)' : 'rgba(255,255,255,0.4)', 
+                        backgroundColor: isDark ? 'rgba(30,30,30,0.4)' : 'rgba(255,255,255,0.4)',
                         backgroundBlendMode: 'overlay',
                     } : {}}
                 >
