@@ -5,6 +5,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import Error from './Error';
 
 
+
+
 export default function OutbreakOraclePage() {
     const [airQuality, setAirQuality] = useState(null);
     const [weather, setWeather] = useState(null);
@@ -17,10 +19,39 @@ export default function OutbreakOraclePage() {
     const [storyStep, setStoryStep] = useState(0);
     const [hasError, setHasError] = useState(false);
 
+    const [bgImage, setBgImage] = useState(null);
+
 
     const [isSpeaking, setIsSpeaking] = useState(false);
     const synthRef = useRef(window.speechSynthesis);
 
+    const url = `https://api.pexels.com/v1/search?query=${city}&per_page=1`;
+    const headers = { Authorization: import.meta.env.VITE_PEXELS_API_KEY };
+
+
+
+    const fetchBgImage = async () => {
+        try {
+            const url = `https://api.pexels.com/v1/search?query=${city}&per_page=1`;
+            const headers = { Authorization: import.meta.env.VITE_PEXELS_API_KEY };
+            const res = await axios.get(url, { headers });
+            const photo = res.data.photos?.[0]?.src?.large || null;
+            setBgImage(photo);
+        } catch (err) {
+            setBgImage(null); // fallback if error
+        }
+    };
+
+    // Fetch image when region changes
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (city && city.trim().length > 0) {
+                fetchBgImage();
+            }
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(handler);
+    }, [city]);
 
     const storySteps = [
         {
@@ -103,6 +134,8 @@ export default function OutbreakOraclePage() {
         setLoading(true);
         setHasError(false); // Reset error state
         try {
+
+            // fetchBgImage();
             const geoRes = await axios.get(
                 `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=70afb6c6dcb6ddc2254e9cb765341486&units=metric`
             );
@@ -262,7 +295,16 @@ Format your response clearly with proper headings and bullet points.`;
                 className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto mb-8"
             >
                 <div className={`rounded-xl shadow-xl p-6 border-l-8 border-purple-500 ${isDark ? 'bg-gray-800' : 'bg-white'
-                    }`}>
+                    }`}
+                    style={bgImage ? {
+                        backgroundImage: `url(${bgImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        color: isDark ? 'white' : 'black',
+                        backgroundColor: isDark ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)', // dark or light overlay
+                        backgroundBlendMode: 'overlay',
+                    } : {}}
+                >
                     <h2 className="text-xl font-semibold text-purple-600 mb-2">Air Quality</h2>
                     <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
                         AQI: {airQuality?.main.aqi || 'Loading'} (1 = Good, 5 = Hazardous)
@@ -278,7 +320,16 @@ Format your response clearly with proper headings and bullet points.`;
                 </div>
 
                 <div className={`rounded-xl shadow-xl p-6 border-l-8 border-blue-500 ${isDark ? 'bg-gray-800' : 'bg-white'
-                    }`}>
+                    }`}
+                    style={bgImage ? {
+                        backgroundImage: `url(${bgImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        color: isDark ? 'white' : 'black',
+                        backgroundColor: isDark ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)', // dark or light overlay
+                        backgroundBlendMode: 'overlay',
+                    } : {}}
+                >
                     <h2 className="text-xl font-semibold text-blue-600 mb-2">Weather</h2>
                     <div className={isDark ? 'text-gray-300' : 'text-gray-600'}>
                         {weather ? (
